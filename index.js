@@ -12,6 +12,7 @@ function googleUserManager(specs) {
         };
 
         var orgUnitPath = specs.orgUnitPath
+        var returnAsList
 
         return new Promise(function (resolve, reject) {
             function listUsers(pageToken) {
