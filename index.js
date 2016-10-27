@@ -1,6 +1,6 @@
 var google = require('googleapis');
 
-function googleUserManager(specs) {
+function googleUserManager(mainSpecs) {
     "use strict";
     var auth;
     var service = google.admin('directory_v1');
@@ -11,36 +11,46 @@ function googleUserManager(specs) {
             users: []
         };
 
-        var orgUnitPath = specs.orgUnitPath
-        var returnAsList
+        var orgUnitPath = specs.orgUnitPath;
 
         return new Promise(function (resolve, reject) {
+            var request = {
+                auth: auth,
+                customer: specs.customer || 'my_customer',
+                maxResults: specs.maxResults || 250,
+                orderBy: 'email'
+            };
+            if (specs.fields) {
+                // TODO add nextpagetoken if missing
+                request.fields = specs.fields;
+            }
+            if (orgUnitPath) {
+                request.orgUnitPath = orgUnitPath;
+
+            }
+            if (specs.projection) {
+                request.projection = specs.projection;
+            }
+
             function listUsers(pageToken) {
-                service.users.list({
-                    auth: auth,
-                    fields: "nextPageToken, users/orgUnitPath, users/primaryEmail",
-                    customer: 'my_customer',
-                    maxResults: 250,
-                    orderBy: 'email',
-                    pageToken: pageToken
-                }, function (err, response) {
+                if (pageToken) {
+                    request.pageToken = pageToken;
+                }
+                service.users.list(request, function (err, response) {
                     if (err) {
                         reject('The API returned an error: ' + err);
                         return;
                     }
                     var users = response.users;
-
+                    users.forEach(function (user) {
+                        if (!orgUnitPath || user.orgUnitPath === orgUnitPath) {
+                            usersSet.users.push(user);
+                        }
+                    });
                     if (users.length === 0) {
                         resolve(usersSet);
                         return;
                     }
-                    users.forEach(function (user) {
-                        if (!orgUnitPath || user.orgUnitPath === orgUnitPath) {
-                            usersSet.users.push({
-                                primaryEmail: user.primaryEmail
-                            });
-                        }
-                    });
                     if (!response.nextPageToken) {
                         resolve(usersSet);
                         return;
@@ -52,12 +62,10 @@ function googleUserManager(specs) {
         });
     }
 
-    auth = specs.auth;
+    auth = mainSpecs.auth;
     return {
         getUsers: getUsers
     };
 }
 
-module.exports = {
-    googleUserManager: googleUserManager
-};
+module.exports = googleUserManager;
