@@ -1,4 +1,4 @@
-Google group manager
+Google user manager
 =========
 
 A wrapper for the google admin SDK user API
