@@ -38,7 +38,7 @@ function googleUserManager(mainSpecs) {
                 }
                 service.users.list(request, function (err, response) {
                     if (err) {
-                        reject('The API returned an error: ' + err);
+                        reject(err);
                         return;
                     }
                     var users = response.users;
