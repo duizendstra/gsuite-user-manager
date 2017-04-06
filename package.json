@@ -1,6 +1,6 @@
 {
-  "name": "google-user-manager",
-  "version": "0.0.6",
+  "name": "gsuite-user-manager",
+  "version": "0.0.1",
   "description": "wrapper for the google admin sdk user api",
   "main": "index.js",
   "dependencies": {
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/duizendstra/google-user-manager.git"
+    "url": "git+https://github.com/duizendstra/gsuite-user-manager.git"
   },
   "keywords": [
     "google",
@@ -21,7 +21,7 @@
   "author": "Jasper Duizendstra <jasper@duizendstra.com> (www.duizendstra.com)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/duizendstra/google-user-manager/issues"
+    "url": "https://github.com/duizendstra/gsuite-user-manager/issues"
   },
-  "homepage": "https://github.com/duizendstra/google-user-manager#readme"
+  "homepage": "https://github.com/duizendstra/gsuite-user-manager#readme"
 }

@@ -1,15 +1,15 @@
-Google user manager
+G suite user manager
 =========
 
 A wrapper for the google admin SDK user API
 
 ## Installation
 
-  `npm install google-user-manager`
+  `npm install g suite-user-manager`
 
 ## Usage
 
-    var userManager = googleUserManager({
+    var userManager = gsuiteUserManager({
         auth: auth
     });
   

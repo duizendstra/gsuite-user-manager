@@ -1,6 +1,6 @@
 var google = require('googleapis');
 
-function googleUserManager(mainSpecs) {
+function gsuiteUserManager(mainSpecs) {
     "use strict";
     var auth;
     var service = google.admin('directory_v1');
@@ -68,4 +68,4 @@ function googleUserManager(mainSpecs) {
     };
 }
 
-module.exports = googleUserManager;
+module.exports = gsuiteUserManager;
