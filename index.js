@@ -5,6 +5,26 @@ function gsuiteUserManager(mainSpecs) {
     var auth;
     var service = google.admin('directory_v1');
 
+    function updateUser(specs) {
+        var userKey = specs.userKey;
+        var resource = specs.resource;
+        var request = {
+            auth: auth,
+            userKey: userKey,
+            resource: resource
+        };
+
+        return new Promise(function (resolve, reject) {
+            service.users.update(request, function (err, response) {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                resolve(response);
+            });
+        });
+    }
+
     function getUsers(specs) {
         var usersSet = {
             kind: "admin#directory#users",
@@ -64,7 +84,8 @@ function gsuiteUserManager(mainSpecs) {
 
     auth = mainSpecs.auth;
     return {
-        getUsers: getUsers
+        getUsers: getUsers,
+        updateUser: updateUser
     };
 }
 
