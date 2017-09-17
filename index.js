@@ -25,6 +25,26 @@ function gsuiteUserManager(mainSpecs) {
         });
     }
 
+    function getUser(specs) {
+        var userKey = specs.userKey;
+        var resource = specs.resource;
+        var request = {
+            auth: auth,
+            userKey: userKey,
+            resource: resource
+        };
+
+        return new Promise(function (resolve, reject) {
+            service.users.get(request, function (err, response) {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                resolve(response);
+            });
+        });
+    }
+
     function getUsers(specs) {
         var usersSet = {
             kind: "admin#directory#users",
@@ -85,6 +105,7 @@ function gsuiteUserManager(mainSpecs) {
     auth = mainSpecs.auth;
     return {
         getUsers: getUsers,
+        getUser: getUser,
         updateUser: updateUser
     };
 }
