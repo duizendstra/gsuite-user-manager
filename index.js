@@ -72,7 +72,7 @@ function gsuiteUserManager(mainSpecs) {
                 request.projection = specs.projection;
             }
             if (specs.query) {
-                request.query = specs.quer;
+                request.query = specs.query;
             }
 
             function listUsers(pageToken) {

@@ -1,6 +1,6 @@
 {
   "name": "gsuite-user-manager",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "wrapper for the google admin sdk user api",
   "main": "index.js",
   "dependencies": {
