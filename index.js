@@ -1,107 +1,126 @@
-var google = require('googleapis');
+let google = require('googleapis');
 
 function gsuiteUserManager(mainSpecs) {
     "use strict";
-    var auth;
-    var service = google.admin('directory_v1');
+    let auth;
+    let service = google.admin('directory_v1');
 
-    function updateUser(specs) {
-        var userKey = specs.userKey;
-        var resource = specs.resource;
-        var request = {
-            auth: auth,
-            userKey: userKey,
-            resource: resource
+    function buildRequest(specs) {
+        let request = {
+            auth: auth
         };
 
-        return new Promise(function (resolve, reject) {
-            service.users.update(request, function (err, response) {
-                if (err) {
-                    reject(err);
-                    return;
+        if (specs.fields) {
+            request.fields = specs.fields;
+        }
+
+        if (specs.backoff) {
+            request.backoff = request;
+        }
+
+        if (specs.q) {
+            request.q = specs.q;
+        }
+
+        if (specs.pageToken) {
+            request.pageToken = specs.pageToken;
+        }
+
+        return request;
+    }
+
+    function doRequest(specs, request, apiCall) {
+        return function () {
+            return new Promise(function (resolve, reject) {
+                if (specs.throttle) {
+                    return specs.throttle().then(function () {
+                        apiCall(request, function (err, response) {
+                            if (err) {
+                                return reject(err);
+                            }
+                            return resolve(response);
+                        });
+                    });
                 }
-                resolve(response);
+                return apiCall(request, function (err, response) {
+                    if (err) {
+                        return reject(err);
+                    }
+                    return resolve(response);
+                });
             });
-        });
+        };
     }
 
     function getUser(specs) {
-        var userKey = specs.userKey;
-        var resource = specs.resource;
-        var request = {
-            auth: auth,
-            userKey: userKey,
-            resource: resource
-        };
+        let request = buildRequest(specs);
+        let apiCall = service.users.get;
 
-        return new Promise(function (resolve, reject) {
-            service.users.get(request, function (err, response) {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                resolve(response);
+        request.userKey = specs.userKey;
+        request.resource = specs.resource;
+
+        if (specs.backoff !== undefined) {
+            return specs.backoff({
+                promise: doRequest(specs, request, apiCall)
             });
-        });
+        }
+        return doRequest(specs, request, apiCall)();
+    }
+
+    function updateUser(specs) {
+        let request = buildRequest(specs);
+        let apiCall = service.users.update;
+
+        request.userKey = specs.userKey;
+        request.resource = specs.resource;
+
+        if (specs.backoff !== undefined) {
+            return specs.backoff({
+                promise: doRequest(specs, request, apiCall)
+            });
+        }
+        return doRequest(specs, request, apiCall)();
     }
 
     function getUsers(specs) {
-        var usersSet = {
-            kind: "admin#directory#users",
-            users: []
-        };
+        let request = buildRequest(specs);
+        let apiCall = service.users.list;
 
-        var orgUnitPath = specs.orgUnitPath;
+        request.customer = specs.customer || "my_customer";
+        request.maxResults = specs.maxResults || 250;
+        request.orderBy = "email";
+        request.pageToken = specs.pageToken;
 
-        return new Promise(function (resolve, reject) {
-            var request = {
-                auth: auth,
-                customer: specs.customer || 'my_customer',
-                maxResults: specs.maxResults || 250,
-                orderBy: 'email'
+        if (specs.backoff !== undefined) {
+            return specs.backoff({
+                promise: doRequest(specs, request, apiCall)
+            });
+        }
+        return doRequest(specs, request, apiCall)();
+    }
+
+    function getAllUsers(specs) {
+        return new Promise(function (resolve) {
+            let usersSet = {
+                kind: "admin#directory#users",
+                users: []
             };
-            if (specs.fields) {
-                // TODO add nextpagetoken if missing
-                request.fields = specs.fields;
-            }
-            if (orgUnitPath) {
-                request.orgUnitPath = orgUnitPath;
 
-            }
-            if (specs.projection) {
-                request.projection = specs.projection;
-            }
-            if (specs.query) {
-                request.query = specs.query;
-            }
+            function rep(localSpecs) {
+                return getUsers(localSpecs).then(function (response) {
+                    usersSet.users = usersSet.users.concat(response.users);
+                    if (response.nextPageToken === undefined || response.users.length === 0) {
+                        resolve(usersSet);
+                    }
 
-            function listUsers(pageToken) {
-                if (pageToken) {
-                    request.pageToken = pageToken;
-                }
-                service.users.list(request, function (err, response) {
-                    if (err) {
-                        reject(err);
-                        return;
+                    if (response.nextPageToken) {
+                        localSpecs.pageToken = response.nextPageToken;
+                        return rep(localSpecs);
                     }
-                    var users = response.users;
-                    users.forEach(function (user) {
-                        if (!orgUnitPath || user.orgUnitPath === orgUnitPath) {
-                            usersSet.users.push(user);
-                        }
-                    });
-                    if (users.length === 0) {
-                        resolve(usersSet);
-                        return;
-                    }
-                    if (!response.nextPageToken) {
-                        resolve(usersSet);
-                        return;
-                    }
-                    listUsers(response.nextPageToken);
                 });
             }
-            listUsers();
+
+            rep(specs);
         });
     }
 
@@ -109,7 +128,8 @@ function gsuiteUserManager(mainSpecs) {
     return {
         getUsers: getUsers,
         getUser: getUser,
-        updateUser: updateUser
+        updateUser: updateUser,
+        getAllUsers: getAllUsers
     };
 }
 
